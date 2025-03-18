@@ -1,0 +1,63 @@
+.movies-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 20px;
+}
+
+.movie-card {
+    width: 250px;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px;
+}
+
+.movie-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+.movie-card img {
+    width: 100%;
+    height: 350px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.movie-card h3 {
+    font-size: 18px;
+    margin: 16px;
+    color: #333;
+    text-align: center;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.movie-info {
+    font-size: 14px;
+    color: #777;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.movie-info p {
+    margin: 5px 0;
+}
+
+.movie-info .rating {
+    font-weight: 600;
+    color: #ff9800;
+}
+
+.movie-info .release-date {
+    color: #999;
+    font-style: italic;
+}
