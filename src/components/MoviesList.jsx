@@ -3,6 +3,8 @@ import { useDispatch, useSelector } from "react-redux";
 import { fetchMovies } from "../store/moviesSlice";
 import "./MoviesList.css";
 import Header from "./Header";
+import MovieModal from "./MovieModal";
+import axios from "axios";
 
 const MoviesList = () => {
   const dispatch = useDispatch();
@@ -11,44 +13,71 @@ const MoviesList = () => {
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
   const [sortRating, setSortRating] = useState("desc");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedMovie, setSelectedMovie] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMovies());
   }, [dispatch]);
 
   useEffect(() => {
-    setFilteredMovies(movies);
-  }, [movies]);
+    let updatedMovies = [...movies];
+    if (searchQuery) {
+      updatedMovies = updatedMovies.filter((movie) =>
+        movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    }
+
+    updatedMovies = updatedMovies.sort((a, b) =>
+      sortOrder === "desc"
+        ? new Date(b.release_date) - new Date(a.release_date)
+        : new Date(a.release_date) - new Date(b.release_date)
+    );
+
+    updatedMovies = updatedMovies.sort((a, b) =>
+      sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
+    );
+    setFilteredMovies(updatedMovies);
+  }, [movies, searchQuery, sortOrder, sortRating]);
 
   const handleSearch = (query) => {
-    const filtered = movies.filter((movie) =>
-      movie.title.toLowerCase().includes(query.toLowerCase())
-    );
-    setFilteredMovies(filtered);
+    setSearchQuery(query);
   };
 
   const handleSort = (order) => {
     setSortOrder(order);
-    const sortedMovies = [...filteredMovies].sort((a, b) => {
-      if (order === "desc") {
-        return new Date(b.release_date) - new Date(a.release_date);
-      } else {
-        return new Date(a.release_date) - new Date(b.release_date);
-      }
-    });
-    setFilteredMovies(sortedMovies);
   };
 
   const handleSortRating = (order) => {
     setSortRating(order);
-    const sortedMovies = [...filteredMovies].sort((a, b) => {
-      if (order === "desc") {
-        return b.vote_average - a.vote_average;
-      } else {
-        return a.vote_average - b.vote_average;
-      }
-    });
-    setFilteredMovies(sortedMovies);
+  };
+
+  const fetchTrailer = async (movieId) => {
+    try {
+      console.log(`Fetching trailer for movie ID: ${movieId}`);
+      const response = await axios.get(
+        `https://api.themoviedb.org/3/movie/${movieId}/videos`,
+        {
+          params: {
+            api_key: "8210bf58af0326bff3d6ef3d33c2c864",
+            language: "en-US",
+          },
+        }
+      );
+      console.log("Videos response:", response.data.results);
+      const trailer = response.data.results.find((video) =>
+        video.type === "Trailer" || video.type === "Teaser"
+      );
+      return trailer ? trailer.key : null;
+    } catch (error) {
+      console.error("Error fetching trailer:", error);
+      return null;
+    }
+  };
+
+  const handleMovieClick = async (movie) => {
+    const trailerKey = await fetchTrailer(movie.id);
+    setSelectedMovie({ ...movie, trailerKey });
   };
 
   if (loading) return <div>Loading...</div>;
@@ -60,7 +89,7 @@ const MoviesList = () => {
       <div className="movies-list">
         {filteredMovies.length > 0 ? (
           filteredMovies.map((movie) => (
-            <div key={movie.id} className="movie-card">
+            <div key={movie.id} className="movie-card" onClick={() => handleMovieClick(movie)}>
               <img
                 src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
                 alt={movie.title}
@@ -68,7 +97,11 @@ const MoviesList = () => {
               <h3>{movie.title}</h3>
               <div className="movie-info">
                 <p>⭐ {movie.vote_average}</p>
-                <p>📅 {new Date(movie.release_date).toLocaleDateString()}</p>
+                <p>📅 {new Date(movie.release_date).toLocaleDateString("en-US", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric"
+                })}</p>
               </div>
             </div>
           ))
@@ -76,6 +109,7 @@ const MoviesList = () => {
           <div>No movies found</div>
         )}
       </div>
+      {selectedMovie && <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />}
     </div>
   );
 };

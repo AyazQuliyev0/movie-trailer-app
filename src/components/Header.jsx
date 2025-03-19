@@ -13,7 +13,7 @@ const Header = ({ onSearch, onSort, onSortRating }) => {
     }
 
     const handleSortRating = (e) => {
-        onSortRating(e.target.value);  // исправлено здесь
+        onSortRating(e.target.value);
     }
 
     return (
