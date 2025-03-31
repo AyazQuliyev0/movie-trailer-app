@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMovies } from "../store/moviesSlice";
+import { addToFavorites, removeFromFavorites } from "../store/favoritesSlice";
 import "./MoviesList.css";
 import Header from "./Header";
 import MovieModal from "./MovieModal";
@@ -9,19 +10,21 @@ import axios from "axios";
 const MoviesList = () => {
   const dispatch = useDispatch();
   const { movies, loading, error } = useSelector((state) => state.movies);
+  const favorites = useSelector((state) => state.favorites.favorites);
 
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
   const [sortRating, setSortRating] = useState("desc");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMovie, setSelectedMovie] = useState(null);
+  const [showFavorites, setShowFavorites] = useState(false);
 
   useEffect(() => {
     dispatch(fetchMovies());
   }, [dispatch]);
 
   useEffect(() => {
-    let updatedMovies = [...movies];
+    let updatedMovies = showFavorites ? [...favorites] : [...movies];
     if (searchQuery) {
       updatedMovies = updatedMovies.filter((movie) =>
         movie.title.toLowerCase().includes(searchQuery.toLowerCase())
@@ -38,7 +41,7 @@ const MoviesList = () => {
       sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
     );
     setFilteredMovies(updatedMovies);
-  }, [movies, searchQuery, sortOrder, sortRating]);
+  }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -54,7 +57,6 @@ const MoviesList = () => {
 
   const fetchTrailer = async (movieId) => {
     try {
-      console.log(`Fetching trailer for movie ID: ${movieId}`);
       const response = await axios.get(
         `https://api.themoviedb.org/3/movie/${movieId}/videos`,
         {
@@ -65,7 +67,7 @@ const MoviesList = () => {
         }
       );
       console.log("Videos response:", response.data.results);
-      const trailer = response.data.results.find((video) =>
+      const trailer = response.data.results.find((video) => 
         video.type === "Trailer" || video.type === "Teaser"
       );
       return trailer ? trailer.key : null;
@@ -80,12 +82,24 @@ const MoviesList = () => {
     setSelectedMovie({ ...movie, trailerKey });
   };
 
+  const toggleFavorite = (movie) => {
+    const isFavorite = favorites.some((fav) => fav.id === movie.id);
+    if (isFavorite) {
+      dispatch(removeFromFavorites(movie.id));
+    } else {
+      dispatch(addToFavorites(movie));
+    }
+  };
+
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;
 
   return (
     <div>
       <Header onSearch={handleSearch} onSort={handleSort} onSortRating={handleSortRating} />
+      <button className="toggle-favorites" onClick={() => setShowFavorites(!showFavorites)}>
+        {showFavorites ? "Show All Movies" : "Show Favorites"}
+      </button>
       <div className="movies-list">
         {filteredMovies.length > 0 ? (
           filteredMovies.map((movie) => (
@@ -103,6 +117,9 @@ const MoviesList = () => {
                   day: "numeric"
                 })}</p>
               </div>
+              <button className="favorite-btn" onClick={(e) => { e.stopPropagation(); toggleFavorite(movie); }}>
+                {favorites.some((fav) => fav.id === movie.id) ? "★" : "☆"}
+              </button>
             </div>
           ))
         ) : (

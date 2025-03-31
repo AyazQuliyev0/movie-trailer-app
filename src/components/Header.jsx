@@ -19,7 +19,7 @@ const Header = ({ onSearch, onSort, onSortRating }) => {
     return (
         <header style={styles.header}>
             <div style={styles.titleContainer}>
-                <h1 style={styles.title}>Popular Movies</h1>
+                <h1 style={styles.title}>TrailerSpot</h1>
             </div>
 
             <div style={styles.controls}>

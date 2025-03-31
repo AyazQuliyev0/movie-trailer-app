@@ -61,3 +61,35 @@
     color: #999;
     font-style: italic;
 }
+
+.toggle-favorites {
+    background: #ffcc00;
+    color: #333;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+    display: block;
+    margin: 20px auto;
+}
+
+.toggle-favorites:hover {
+    background: #ffaa00;
+    transform: scale(1.05);
+}
+
+.favorite-btn {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.favorite-btn:hover {
+    transform: scale(1.2);
+    color: gold;
+}
