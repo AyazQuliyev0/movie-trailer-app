@@ -21,7 +21,7 @@ const MoviesList = () => {
 
   useEffect(() => {
     dispatch(fetchMovies());
-  }, [dispatch]);
+  }, [dispatch])
 
   useEffect(() => {
     let updatedMovies = showFavorites ? [...favorites] : [...movies];
