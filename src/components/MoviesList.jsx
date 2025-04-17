@@ -13,7 +13,7 @@ const MoviesList = () => {
   const { movies, loading, error } = useSelector((state) => state.movies);
   const favorites = useSelector((state) => state.favorites.favorites);
   const genres = useSelector((state) => state.genres?.genres || []);
-  console.log("Genres in component:", genres);
+  console.log(genres)
 
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
