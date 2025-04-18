@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchMovies } from "../store/moviesSlice";
+import { fetchGenres } from "../store/genresSlice";
 import { addToFavorites, removeFromFavorites } from "../store/favoritesSlice";
 import "./MoviesList.css";
 import Header from "./Header";
@@ -11,6 +12,8 @@ const MoviesList = () => {
   const dispatch = useDispatch();
   const { movies, loading, error } = useSelector((state) => state.movies);
   const favorites = useSelector((state) => state.favorites.favorites);
+  const genres = useSelector((state) => state.genres?.genres || []);
+  console.log(genres)
 
   const [filteredMovies, setFilteredMovies] = useState([]);
   const [sortOrder, setSortOrder] = useState("desc");
@@ -18,30 +21,83 @@ const MoviesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedMovie, setSelectedMovie] = useState(null);
   const [showFavorites, setShowFavorites] = useState(false);
+  const [selectedGenre, setSelectedGenre] = useState(null);
 
   useEffect(() => {
     dispatch(fetchMovies());
-  }, [dispatch])
+    dispatch(fetchGenres());
+  }, [dispatch]);
+
+  // useEffect(() => {
+  //   // let updatedMovies = showFavorites ? [...favorites] : [...movies];
+  //   // console.log(updatedMovies)
+  //   let updatedMovies = showFavorites ? [...new Map(favorites.map(f => [f.id, f])).values()] : [...movies];
+  //   if (searchQuery.trim()) {
+  //     const query = searchQuery.toLowerCase();
+  //     updatedMovies = updatedMovies.filter((movie) =>
+  //       movie.title.toLowerCase().includes(query)
+  //     );
+  //   }
+
+  //   if (selectedGenre) {
+  //     updatedMovies = updatedMovies.filter((movie) =>
+  //       movie.genre_ids.includes(selectedGenre)
+  //     );
+  //   }
+
+  //   if (sortOrder) {
+  //     updatedMovies.sort((a, b) =>
+  //       sortOrder === "desc"
+  //         ? new Date(b.release_date) - new Date(a.release_date)
+  //         : new Date(a.release_date) - new Date(b.release_date)
+  //     );
+  //   }
+
+  //   if (sortRating) {
+  //     updatedMovies.sort((a, b) =>
+  //       sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
+  //     );
+  //   }
+
+  //   setFilteredMovies(updatedMovies);
+  // }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites, selectedGenre]);
 
   useEffect(() => {
-    let updatedMovies = showFavorites ? [...favorites] : [...movies];
-    if (searchQuery) {
+    let updatedMovies = showFavorites
+      ? [...new Map(favorites.map((f) => [f.id, f])).values()]
+      : [...new Map(movies.map((m) => [m.id, m])).values()];
+  
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
       updatedMovies = updatedMovies.filter((movie) =>
-        movie.title.toLowerCase().includes(searchQuery.toLowerCase())
+        movie.title.toLowerCase().includes(query)
       );
     }
-
-    updatedMovies = updatedMovies.sort((a, b) =>
-      sortOrder === "desc"
-        ? new Date(b.release_date) - new Date(a.release_date)
-        : new Date(a.release_date) - new Date(b.release_date)
-    );
-
-    updatedMovies = updatedMovies.sort((a, b) =>
-      sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
-    );
+  
+    if (selectedGenre) {
+      updatedMovies = updatedMovies.filter((movie) =>
+        movie.genre_ids.includes(selectedGenre)
+      );
+    }
+  
+    if (sortOrder) {
+      updatedMovies.sort((a, b) =>
+        sortOrder === "desc"
+          ? new Date(b.release_date) - new Date(a.release_date)
+          : new Date(a.release_date) - new Date(b.release_date)
+      );
+    }
+  
+    if (sortRating) {
+      updatedMovies.sort((a, b) =>
+        sortRating === "desc"
+          ? b.vote_average - a.vote_average
+          : a.vote_average - b.vote_average
+      );
+    }
+  
     setFilteredMovies(updatedMovies);
-  }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites]);
+  }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites, selectedGenre]);
 
   const handleSearch = (query) => {
     setSearchQuery(query);
@@ -66,9 +122,8 @@ const MoviesList = () => {
           },
         }
       );
-      console.log("Videos response:", response.data.results);
-      const trailer = response.data.results.find((video) => 
-        video.type === "Trailer" || video.type === "Teaser"
+      const trailer = response.data.results.find(
+        (video) => video.type === "Trailer" || video.type === "Teaser"
       );
       return trailer ? trailer.key : null;
     } catch (error) {
@@ -100,6 +155,18 @@ const MoviesList = () => {
       <button className="toggle-favorites" onClick={() => setShowFavorites(!showFavorites)}>
         {showFavorites ? "Show All Movies" : "Show Favorites"}
       </button>
+      <select
+        value={selectedGenre || ""}
+        onChange={(e) => setSelectedGenre(e.target.value ? Number(e.target.value) : null)}
+        className="genre-select"
+      >
+        <option value="">All Genres</option>
+        {genres.map((genre) => (
+          <option key={genre.id} value={genre.id}>
+            {genre.name}
+          </option>
+        ))}
+      </select>
       <div className="movies-list">
         {filteredMovies.length > 0 ? (
           filteredMovies.map((movie) => (
@@ -117,7 +184,13 @@ const MoviesList = () => {
                   day: "numeric"
                 })}</p>
               </div>
-              <button className="favorite-btn" onClick={(e) => { e.stopPropagation(); toggleFavorite(movie); }}>
+              <button
+                className="favorite-btn"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  toggleFavorite(movie);
+                }}
+              >
                 {favorites.some((fav) => fav.id === movie.id) ? "★" : "☆"}
               </button>
             </div>
@@ -126,7 +199,7 @@ const MoviesList = () => {
           <div>No movies found</div>
         )}
       </div>
-      {selectedMovie && <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />}
+      {selectedMovie && <MovieModal movie={selectedMovie} onClose={() => setSelectedMovie(null)} />}        
     </div>
   );
 };
