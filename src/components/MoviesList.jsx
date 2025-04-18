@@ -28,22 +28,58 @@ const MoviesList = () => {
     dispatch(fetchGenres());
   }, [dispatch]);
 
-  useEffect(() => {
-    let updatedMovies = showFavorites ? [...favorites] : [...movies];
+  // useEffect(() => {
+  //   // let updatedMovies = showFavorites ? [...favorites] : [...movies];
+  //   // console.log(updatedMovies)
+  //   let updatedMovies = showFavorites ? [...new Map(favorites.map(f => [f.id, f])).values()] : [...movies];
+  //   if (searchQuery.trim()) {
+  //     const query = searchQuery.toLowerCase();
+  //     updatedMovies = updatedMovies.filter((movie) =>
+  //       movie.title.toLowerCase().includes(query)
+  //     );
+  //   }
 
+  //   if (selectedGenre) {
+  //     updatedMovies = updatedMovies.filter((movie) =>
+  //       movie.genre_ids.includes(selectedGenre)
+  //     );
+  //   }
+
+  //   if (sortOrder) {
+  //     updatedMovies.sort((a, b) =>
+  //       sortOrder === "desc"
+  //         ? new Date(b.release_date) - new Date(a.release_date)
+  //         : new Date(a.release_date) - new Date(b.release_date)
+  //     );
+  //   }
+
+  //   if (sortRating) {
+  //     updatedMovies.sort((a, b) =>
+  //       sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
+  //     );
+  //   }
+
+  //   setFilteredMovies(updatedMovies);
+  // }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites, selectedGenre]);
+
+  useEffect(() => {
+    let updatedMovies = showFavorites
+      ? [...new Map(favorites.map((f) => [f.id, f])).values()]
+      : [...new Map(movies.map((m) => [m.id, m])).values()];
+  
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       updatedMovies = updatedMovies.filter((movie) =>
         movie.title.toLowerCase().includes(query)
       );
     }
-
+  
     if (selectedGenre) {
       updatedMovies = updatedMovies.filter((movie) =>
         movie.genre_ids.includes(selectedGenre)
       );
     }
-
+  
     if (sortOrder) {
       updatedMovies.sort((a, b) =>
         sortOrder === "desc"
@@ -51,13 +87,15 @@ const MoviesList = () => {
           : new Date(a.release_date) - new Date(b.release_date)
       );
     }
-
+  
     if (sortRating) {
       updatedMovies.sort((a, b) =>
-        sortRating === "desc" ? b.vote_average - a.vote_average : a.vote_average - b.vote_average
+        sortRating === "desc"
+          ? b.vote_average - a.vote_average
+          : a.vote_average - b.vote_average
       );
     }
-
+  
     setFilteredMovies(updatedMovies);
   }, [movies, favorites, searchQuery, sortOrder, sortRating, showFavorites, selectedGenre]);
 
